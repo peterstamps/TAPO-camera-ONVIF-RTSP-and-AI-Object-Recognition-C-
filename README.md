@@ -2,6 +2,13 @@
 TAPO-camera-ONVIF-RTSP-and-AI-Object-Recognition in C++
 
 
+You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm).
+1. Download mycMotDetRec and mycMotDetRec_config.ini and test_mask.png 
+2. Open a terminal in the directory where you save these files.
+3. DO NOT FORGET THIS: EditT / Adapt first settings in mycMotDetRec_config.ini to your needs
+4. Run ./mycMotDetRec 
+
+To compile/Adapt the C++ program.
 Download the repository and install the prerequisites.
 There are a lof of comments in de C++ cpp program and the mycMotDetRec_config.ini file.
 You may compile and change the mycMotDetRec.cpp as you wish.
