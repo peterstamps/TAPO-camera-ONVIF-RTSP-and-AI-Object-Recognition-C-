@@ -3,19 +3,20 @@ TAPO-camera-ONVIF-RTSP-and-AI-Object-Recognition in C++
 
 
 Download the repository and install the prerequisites.
-There are a lof of comments in de C++ cpp program and the .ini file.
+There are a lof of comments in de C++ cpp program and the mycMotDetRec_config.ini file.
 You may compile and change the mycMotDetRec.cpp as you wish.
 The compiled version mycMotDetRec works on Raspberry Pi (4) wit Bookworm 64 bit.
 mycMotDetRec means: myc = my camera, Mot = Motion, Det = Dectection, Rec = Recording.
 
-There are mulitple method to create your own Mask file.
-I use for the included test_mask.png the Gimp.
-- Create a new file with the same pixel size as your camera stream produces e.g. 1280 x 720, you can also start with a snapshot picture of your camera
-- Draw with black colured layer over the whole picture. Black parts will become  free of motion detection, usually draw a black figure/coulour over plants, streets with many cars etc.
-- Use a rectangle, circle or any other free form to cut from the black the desired forms (cut-out-of-the black) and fill these cut parts in the black layer with white colour. The will become the transparant parts later on
-- Delete the original snapshot picture
-- Move all layers into a flat image (see menu image -> flatten image )
-- Export as your mask_file.png and use that.
+There are mulitple methods to create your own Mask file.
+I used for the included test_mask.png the Gimp.
+- Create a new file with the same pixel size as your camera stream produces e.g. 1280 x 720, you can also start (preferred) with a snapshot picture of your camera
+- Draw a black coloured layer over the whole picture. Black parts will become  free of motion detection, usually you draw a black figure/coulour over plants, streets with many cars etc. Things that create a lot of motion/false triggers.
+- Use a rectangle, circle or any other free form to cut out from the black the desired layout that should be visible for motion detction (cut-out-of-the black) and fill these gaps/parts in the black layer with white colour. They will become  transparant parts later on.
+- When satisfied you delete the original snapshot picture from the background.
+- Flatten hereafter all layers into a flat image (see menu image -> flatten image )
+- Export now your Mask in a file e.g. mask_file.png 
+- Specify that file / location in the mycMotDetRec_config.ini 
 
 In principle this C++ version is almost similar to the Python version.
 
