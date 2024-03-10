@@ -176,7 +176,7 @@ int main() {
     // Show the display window with mask in a resized frame
     string show_display_window = reader.Get("motion_detection", "show_display_window", "No");
     // Show the display window with resized frame
-    string show_display_window_with_mask = reader.Get("motion_detection", "show_display_window", "No");
+    string show_display_window_with_mask = reader.Get("motion_detection", "show_display_window_with_mask", "No");
     // Show indicator that motion has been detected on display window
     string show_motion_detected_msg_on_display_window = reader.Get("motion_detection", "show_motion_detected_msg_on_display_window", "No");
     // Show the fps and the date and time on the display window
