@@ -6,7 +6,9 @@ You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm).
 1. Download mycMotDetRec and mycMotDetRec_config.ini and test_mask.png 
 2. Open a terminal in the directory where you save these files.
 3. DO NOT FORGET THIS: EditT / Adapt first settings in mycMotDetRec_config.ini to your needs
-4. Run ./mycMotDetRec 
+4. Run ./mycMotDetRec
+5. You may see a few times this repeated message. Just ignore it: libpng warning: iCCP: known incorrect sRGB profile
+
 
 To compile/Adapt the C++ program.
 Download the repository and install the prerequisites.
