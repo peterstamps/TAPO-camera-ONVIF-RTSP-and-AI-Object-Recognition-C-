@@ -8,6 +8,7 @@ You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm).
 3. DO NOT FORGET THIS: EditT / Adapt first settings in mycMotDetRec_config.ini to your needs
 4. Run ./mycMotDetRec
 5. You may see a few times this repeated message. Just ignore it: libpng warning: iCCP: known incorrect sRGB profile
+6. Use key q to close the program or CTRL-C in the console/terminal
 
 
 To compile/Adapt the C++ program.
