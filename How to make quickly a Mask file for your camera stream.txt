@@ -1,0 +1,25 @@
+How to make a Mask .png file for your Camera stream with GIMP?
+
+You can probably also use other tools, but this explanation is using GIMP.
+Follow these steps assuming you have already configured and use the program once:
+1. In mycMotDetRec_config.ini set parameter: show_display_window_not_resized = Yes 
+2. Run ./mycMotDetRec
+3. When the window with title "Motion Detection Original Format" opens use CRTL-S to 
+save a picture from the camera's orginal stream. Save it with e.g. my_mask.png in 
+the directory where mycMotDetRec is located. Quit program mycMotDetRec.
+4. Start GIMP and open the just created file my_mask.png in GIMP
+5. Click on the icon of the free select tool (lasso) and draw lines around those area's that should
+be out-of-scope with regard to motion detection. Examples are trees, waving plants, streets with lot of traffic 
+and so on. Close the area by return to the starting point. 
+6. Select a Black Foregroud color and then Click on Bucket Fill tool icon and fill the area you created in previous step.
+That area will become fully black!
+7. Repeat step 5 and 6 for every other area you wish to be out of scope for motion detection.
+8. Once done Click on Menu >Select >None followed by >Menu >Select >All. All object must be selected!
+9. Click on Menu >Image >Flatten Image (repeat when needed) till one single layer exists
+10. Click on Menu >Colors >Thresholds (down in list). Set in the popup window in the middle left the number on 1.
+11. The non black area's will become white. Maybe a few spots are still left. You can brush black/darkgray spots away if you wish.
+12. Remember White areas will become Transparent, Black areas are NON-Transparent (=not sensitive for motion detection)
+13. Save now my_mask.png
+14. In mycMotDetRec_config.ini set parameter: mask_path = ./my_mask.png and save. Done!
+15. Run again ./mycMotDetRec 
+

@@ -26,9 +26,22 @@
 #include <curl/curl.h>
 #include <json/json.h>
 
+
 using namespace cv;
 using namespace std;
 VideoWriter outputVideo;
+
+// Function to split a string by delimiter
+    vector<string> splitString(const string& input, char delimiter) {
+    vector<string> tokens;
+    string token;
+    istringstream tokenStream(input);
+    while (getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 
 // Structure to hold object detection result
 struct DetectionResult {
@@ -55,19 +68,28 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, string *data) {
 }
 
 // Function to post the image to the server and parse the JSON response
-vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min_confidence, Mat& frame, string& show_AIResponse_message, string& show_AIObjDetectionResult) {
+vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min_confidence, Mat& frame, string& show_AIResponse_message, string& show_AIObjDetectionResult, string& curl_debug_message_on) {
     // Define vector for the extraction of  object detection results
     vector<DetectionResult> detectionResults;    
     CURL *curl;
     CURLcode res;
-    vector<uchar> buffer;
-   // Mat the_frame = imread("test.jpg"); // Load your image here. Keep for test. However a frame is used!
+
 
     curl = curl_easy_init();
     if (curl) {
-        imencode(".jpg", frame, buffer);
+        if (curl_debug_message_on == "Yes") {
+              curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        }      
+        // Convert the frame to JPEG format
+        vector<uchar> buffer;
+        //buffer for coding 
+        vector<int> param(2);
+        param[0] = cv::IMWRITE_JPEG_QUALITY; param[1] = 100; //default(95) 0-100 
+        cv::imencode(".jpg", frame, buffer, param);         
+        // Save the frame into a file
+        // imwrite("./temp_frame.jpg", frame); //
+        // Mat frame = imread("./temp_frame.jpg"); // Load your image here.
 
-        string min_confidence = "0.4";
         // string AIserverUrl = AIserverUrl; // set in the config file and passsed by main()
         // string min_confidence = "0.4";  // set in the config file and passsed by main()
         string output_obj_detection_filename = "picture_for_obj_detection.jpg";
@@ -117,15 +139,14 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
               }  // END  if (show_AIResponse_message == "Yes")
               if (show_AIObjDetectionResult == "Yes") {
                   const string aiMessage(jsonData["message"].asString());
-                  cout << "Natively parsed:" << endl;
-                  cout << "\tAI Message string: " << aiMessage << endl;
+                  cout << "AI Message: " << aiMessage << endl;
                   cout << endl;
                  // Extract object detection results
                   for (const auto& prediction : jsonData["predictions"]) {
                       DetectionResult result;
                       result.label = prediction["label"].asString();
                       result.boundingBox = Rect(prediction["x_min"].asInt(), prediction["y_min"].asInt(),
-                                                     prediction["x_max"].asInt(), prediction["y_max"].asInt());
+                                           prediction["x_max"].asInt(), prediction["y_max"].asInt());
                       detectionResults.push_back(result);
                       }
               } // END  if (show_AIObjDetectionResult == "Yes")
@@ -173,9 +194,11 @@ int main() {
     string draw_motion_rectangles = reader.Get("motion_detection", "draw_motion_rectangles", "No");
     // Simulate a motion Default No. (used for test purposes)
     string simulate_a_motion = reader.Get("motion_detection", "simulate_a_motion", "No");
-    // Show the display window with mask in a resized frame
+    // Show the display window in a resized frame (but not with a mask)
     string show_display_window = reader.Get("motion_detection", "show_display_window", "No");
-    // Show the display window with resized frame
+    // Show the display window in its original frame (not resized)
+    string show_display_window_not_resized = reader.Get("motion_detection", "show_display_window_not_resized", "No");
+    // Show the display window with mask in a resized frame
     string show_display_window_with_mask = reader.Get("motion_detection", "show_display_window_with_mask", "No");
     // Show indicator that motion has been detected on display window
     string show_motion_detected_msg_on_display_window = reader.Get("motion_detection", "show_motion_detected_msg_on_display_window", "No");
@@ -197,6 +220,11 @@ int main() {
     string AI_object_detection_service = reader.Get("object_detection", "AI_object_detection_service", "No");
     // Thresholds for object detection: this is the minimum percentage (fraction) when an object signaled as recognised
     string min_confidence = reader.Get("motion_detection", "min_confidence", "0.4");    
+    // Try to find the defined objects and signal them when as recognised
+    string string_of_objects_for_detection = reader.Get("object_detection", "string_of_objects_for_detection", "person");    
+    // Split the comma-separated string string_of_objects_for_detection into individual values
+    vector<string> objects_for_detection = splitString(string_of_objects_for_detection, ',');
+
     // Object detection will repeat after x seconds (default 5) when motion has been detected
     int object_detection_time = reader.GetInteger("object_detection", "object_detection_time", 3);
    // Output picture parameters
@@ -205,6 +233,9 @@ int main() {
     string show_AIResponse_message = reader.Get("object_detection", "show_AIResponse_message", "No");
     // Show the result(s) from the response message from the AI Object Detection Service
     string show_AIObjDetectionResult = reader.Get("object_detection", "show_AIObjDetectionResult", "No");    // When No motion rectangles will be drawn on the screen around the moving objects
+    // Show the result(s) from the response message from the AI Object Detection Service
+    string curl_debug_message_on = reader.Get("object_detection", "curl_debug_message_on", "No");    // When No motion rectangles will be drawn on the screen around the moving objects
+
 
 
     // Load the mask
@@ -234,7 +265,9 @@ int main() {
     cout << "Camera started @ " << time_now_buf << endl;
     cout << "Videos are saved @ " << output_video_path << endl;
     cout << "Pictures are saved @ " << output_obj_picture_path << endl;
-
+    if (AI_object_detection_service == "Yes") {
+      cout << "Try to detect following objects : " << string_of_objects_for_detection << endl;
+    }
 
     VideoWriter outputVideo;
 
@@ -342,22 +375,36 @@ int main() {
           if (frameCounter > 100 and frameCounter < 300  or frameCounter > 400 and frameCounter < 600) {motion_detected = true;} else {motion_detected = false;}
         }
         
-        if (recording_on and AI_object_detection_service == "Yes") {
+      //  if (recording_on and AI_object_detection_service == "Yes") {
+        if (recording_on == true and AI_object_detection_service == "Yes") {
           // Initialize variables for a new object detection, object_detection_time is defined in config
-
             int modulo_result = frameCounter % obj_detection_each_x_frames;
             if (modulo_result == 0) {       
-            // Post the image to the server and get the response
-            auto detectionResults = postImageAndGetResponse(AIserverUrl, min_confidence, frame_original, show_AIResponse_message, show_AIObjDetectionResult);   
-            for (const auto& result : detectionResults) {
-               if (result.label == "car") {
-                 imwrite(output_obj_picture_path + "Pic_" + time_now_buf + ".jpg", frame_original);  
-                 cout << "Saved: " << output_obj_picture_path + "Pic_" + time_now_buf + ".jpg" << endl;
-                }
-            }
+              // Post the image to the AI Object Detction Service and get the detectionResults from the response
+              auto detectionResults = postImageAndGetResponse(AIserverUrl, min_confidence, frame_original, show_AIResponse_message, show_AIObjDetectionResult, curl_debug_message_on);   
+              for (const auto& result : detectionResults) {
+                  // Verify if result.label is equal to one of the values defined in objects_for_detection
+                  // if found then we will draw rectangles and label. In Python it would be: if "car" in ['car', person', 'bicycle']
+                  bool found = false;
+                  for (const string& value : objects_for_detection) {
+                    if (result.label == value) { 
+                      found = true;
+                      break;
+                    }
+                  } // END for (const string& value : objects_for_detection)  
+                  if (found) {
+                    // Draw rectangles and labels for each detected object
+                    // Draw a rectangle around the detected object
+                    rectangle(frame_original, result.boundingBox, Scalar(0, 255, 0), 2);
+                    // Put the label at the top left corner of the rectangle
+                    putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
+                    imwrite(output_obj_picture_path + "Pic_" + time_now_buf + "_" + result.label + ".jpg", frame_original);  
+                    cout << "Saved: " << output_obj_picture_path + "Pic_" + time_now_buf + "_" + result.label + ".jpg" << endl;
+                    } // END if (found) 
+              }  // END for (const auto& result : detectionResults)                  
 
-          }
-        }
+            } // END if (modulo_result == 0)
+        } // END  if (recording_on == false and AI_object_detection_service == "Yes") 
               
                       
         // If motion detected, start recording and set the record duration
@@ -405,15 +452,23 @@ int main() {
               outputVideo.write(frame_original);
           }
         }
-        if (show_display_window == "Yes") {
-          resize(frame_original, frame_original, Size(640,370));     
+        if (show_display_window_not_resized == "Yes") {
           // Display the resulting frame
-          imshow("Motion Detection", frame_original);
+          imshow("Motion Detection Original Format", frame_original);
         }
-        if (show_display_window_with_mask == "Yes") {
-          resize(frame, frame, Size(640,370));     
+                
+        if (show_display_window == "Yes") {
+          Mat frame_original_resized;
+          resize(frame_original, frame_original_resized, Size(640,370));     
           // Display the resulting frame
-          imshow("Motion Detection with Mask", frame);
+          imshow("Motion Detection", frame_original_resized);
+        }
+
+        if (show_display_window_with_mask == "Yes") {
+          Mat frame_resized;
+          resize(frame, frame_resized, Size(640,370));     
+          // Display the resulting frame
+          imshow("Motion Detection with Mask", frame_resized);
         }
 
         // Check for key press to exit
