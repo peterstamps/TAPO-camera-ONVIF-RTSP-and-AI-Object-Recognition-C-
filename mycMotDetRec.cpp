@@ -147,11 +147,12 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
               if (show_AIObjDetectionResult == "Yes") {
                   const string aiMessage(jsonData["message"].asString());                  
                   const string aiSuccess(jsonData["success"].asString());                  
-                  cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << " " << aiMessage << endl; 
                  // Extract object detection results
                   for (const auto& prediction : jsonData["predictions"]) {
                       DetectionResult result;
                       result.label = prediction["label"].asString();
+                      cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << ". Found: " << result.label << aiMessage << endl; 
+                      
                       result.boundingBox = Rect(prediction["x_min"].asInt(), prediction["y_min"].asInt(),
                                            prediction["x_max"].asInt(), prediction["y_max"].asInt());
                       detectionResults.push_back(result);
@@ -284,7 +285,7 @@ int main() {
     cout << "Videos are saved @ " << output_video_path << endl;
     cout << "Pictures are saved @ " << output_obj_picture_path << endl;
     if (AIobject_detection_service == "Yes") {
-      cout << "Try to detect following objects : " << string_of_objects_for_detection << endl;
+      cout << "Detect Objects, but save ONLY pictures of: " << string_of_objects_for_detection << endl;
     }
 
     VideoWriter outputVideo;
