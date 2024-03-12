@@ -224,6 +224,8 @@ int main() {
     string output_video_path = reader.Get("video_recording", "output_video_path", "./");
     // Output prefix video file
     string prefix_output_video = reader.Get("video_recording", "prefix_output_video", "Vid_");
+    // Extension of the video file
+    string extension_of_video = reader.Get("video_recording", "extension_of_video", ".avi");
     // The Frames per second that your camera uses
     int fps = reader.GetInteger("video_recording", "fps", 15);
     // The codec to be used for writing the videos
@@ -255,8 +257,6 @@ int main() {
     // Show the result(s) from the response message from the AI Object Detection Service
     string curl_debug_message_on = reader.Get("object_detection", "curl_debug_message_on", "No");    // When No motion rectangles will be drawn on the screen around the moving objects
 
-
-
     // Load the mask
     Mat mask = imread(mask_path, IMREAD_GRAYSCALE);
     if (mask.empty()) {
@@ -266,7 +266,6 @@ int main() {
     // Invert the mask so that black becomes non-transparent and white becomes transparent
     mask = 255 - mask;    
     
-
     // Initialize camera
     VideoCapture cap(url);
     if (!cap.isOpened()) {
@@ -329,8 +328,7 @@ int main() {
                 }
             }
         }
-        
-        
+  
         // Apply background subtraction
         Mat fg_mask;
         back_sub->apply(frame, fg_mask);
@@ -426,7 +424,13 @@ int main() {
 
             } // END if (modulo_result == 0)
         } // END  if (recording_on == false and AIobject_detection_service == "Yes") 
-              
+
+          // If recording is on, then check if extra record time must be added and check if record duration is passed 
+        if (recording_on) {
+          if (motion_detected and time(0) >= end_time - before_record_duration_is_passed) {
+                end_time += extra_record_time;
+              }
+         }            
                       
         // If motion detected, start recording and set the record duration
         if (motion_detected and not recording_on) {
@@ -435,19 +439,14 @@ int main() {
               end_time = start_time + record_duration;
               cout << "Recording started @ " + string(time_now_buf) << endl;
               // set the codec and create VideoWriter object
-              outputVideo.release();       
-              outputVideo.open(output_video_path + prefix_output_video + time_now_buf + ".avi",  VideoWriter::fourcc(codecString[0], codecString[1], codecString[2], codecString[3]), fps, frameSize, true);
-              cout << "Saved: " << output_video_path + prefix_output_video + time_now_buf + ".avi" << endl;
-
+              outputVideo.release();  
+              outputVideo.open(output_video_path + prefix_output_video + time_now_buf + extension_of_video,  VideoWriter::fourcc(codecString[0], codecString[1], codecString[2], codecString[3]), fps, frameSize, true);
+              cout << "Saved: " << output_video_path + prefix_output_video + time_now_buf + extension_of_video << endl;
           }
 
 
-        // If recording is on, then check if extra record time must be added and check if record duration is passed 
+        // If recording is on, check if standard record duration plus applicable extra record time has been passed. 
         if (recording_on) {
-          if (motion_detected and time(0) >= end_time - before_record_duration_is_passed) {
-                end_time += extra_record_time;
-          }
-
           // Check if it's time to stop recording
           if (time(0) >= end_time) {
               cout << "Recording stopped @ " + string(time_now_buf) << endl;
@@ -461,11 +460,8 @@ int main() {
               }    
               outputVideo.release();
           }
-          else {
-              
+          else {          
               // Write frame to the output video  
-             // cout << "1 write frame ->" + str_frameCounter << endl;
-              // out << frame; 
               if (!outputVideo.isOpened()) {
                   cerr << "Could not open the output video file for write\n";
                   return -1;
