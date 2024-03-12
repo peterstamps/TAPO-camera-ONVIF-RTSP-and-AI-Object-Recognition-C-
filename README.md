@@ -11,6 +11,8 @@ You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm).
 5. You may see a few times this repeated message. Just ignore it: libpng warning: iCCP: known incorrect sRGB profile
 6. Use key q to close the program or CTRL-C in the console/terminal
 
+You get the best results on a Tapo camera using stream2 (1280 x 720 pixels) on a Raspberry pi 4 (4GB ram) 64 bit Bookworm.
+Tapo Stream1 is 4 times! more pixels (2560x1440) to process and a little too heavy for the pi 4, maybe pi 5 will have no issues.
 
 To compile/Adapt the C++ program.
 Download the repository and install the prerequisites.
