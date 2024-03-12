@@ -109,8 +109,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
         curl_mime_data(part, min_confidence.c_str(), CURL_ZERO_TERMINATED);
 
         part = curl_mime_addpart(mime);
-       // curl_mime_name(part, "typedfile");  // works for Code Project AI, not Deepstack
-        curl_mime_name(part, "image");   // works for Code Project AI and Deepstack
+       // curl_mime_name(part, "typedfile");  // works for Code Project AI, not for Deepstack
+        curl_mime_name(part, "image");   // works for both Code Project AI and Deepstack
         curl_mime_data(part, image_stream.str().c_str(), buffer.size());
         curl_mime_filename(part, output_obj_detection_filename.c_str());
         curl_mime_type(part, "image/jpeg");
@@ -123,6 +123,12 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
 
         res = curl_easy_perform(curl);
+        
+        char time_now_buf[21];
+        time_t now;
+        time(&now);
+        strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
+            
         if (res != CURLE_OK) {
             cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << endl;
             }    
@@ -133,16 +139,15 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
             Json::Reader jsonReader;
             if (jsonReader.parse(response_data, jsonData)) {
               if (show_AIResponse_message == "Yes") {
-                  cout << "Successfully parsed JSON data" << endl;
-                  cout << "\nJSON data received:" << endl;
-                  cout << jsonData.toStyledString() << endl;
+                  cout << time_now_buf << " Successfully parsed JSON data" << endl;
+                  cout << time_now_buf << " JSON data received:" << endl;
+                  cout << time_now_buf << jsonData.toStyledString() << endl;
                 //  const string aiPredictions(jsonData["predictions"].asString());
               }  // END  if (show_AIResponse_message == "Yes")
               if (show_AIObjDetectionResult == "Yes") {
                   const string aiMessage(jsonData["message"].asString());                  
                   const string aiSuccess(jsonData["success"].asString());                  
-                  cout << "AI Message: Success is " << aiSuccess << " " << aiMessage << endl; 
-                  cout << endl;
+                  cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << " " << aiMessage << endl; 
                  // Extract object detection results
                   for (const auto& prediction : jsonData["predictions"]) {
                       DetectionResult result;
@@ -155,8 +160,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
             }
             else 
             {
-                cout << "Could not parse HTTP data as JSON" << endl;
-                cout << "HTTP data was:\n" << response_data << endl;
+                cout  << time_now_buf << " Could not parse HTTP data as JSON" << endl;
+                cout  << time_now_buf << " HTTP data was:\n" << response_data << endl;
             } // END of if (jsonReader.parse(response_data, jsonData))
         } // END if (res != CURLE_OK)
       } // END if (curl)
@@ -174,11 +179,13 @@ int main() {
         cout << "Error: Cannot load config.ini" << endl;
         return 1;
     }
-
+    // CAMERA
     // Read variables from the .ini file
-    // IP camera URL
-    string url = reader.Get("camera_url", "url", "");
+    // Full rtsp URL of IP camera inluding user name and password when required
+    string url = reader.Get("camera", "url", "");
     // Thresholds for motion detection contour area: this is the minimum numer of the changed pixels between frames
+    
+    // MOTION DETECTION
     int min_contour_area = reader.GetInteger("motion_detection", "min_contour_area", 500);
     // Background subtraction method (choose between "KNN" or "MOG2")
     string background_subtractor_method = reader.Get("motion_detection", "background_subtraction_method", "KNN");
@@ -186,11 +193,11 @@ int main() {
     string mask_path = reader.Get("motion_detection", "mask_path", "");
     // Record duration in seconds
     int record_duration = reader.GetInteger("motion_detection", "record_duration", 10);
-    // Time to check for new motion before the end of the set record duration
-    int check_motion_time = reader.GetInteger("motion_detection", "check_motion_time", 3);
+    // Warm up time. The time to be passed after start of program. Hereafter motion dectection will start.
+    int warmup_time = reader.GetInteger("motion_detection", "warmup_time", 3);
     // Extra time to add to the record duration if new motion is detected
     int extra_record_time = reader.GetInteger("motion_detection", "extra_record_time", 5);
-    // Pre-motion recording duration in seconds
+    // Pre-motion recording duration in second. The time before recording should stop wiil be used to detect uf new motion happened.
     int before_record_duration_is_passed = reader.GetInteger("motion_detection", "before_record_duration_is_passed", 3);
     // When No motion rectangles will be drawn on the screen around the moving objects
     string draw_motion_rectangles = reader.Get("motion_detection", "draw_motion_rectangles", "No");
@@ -211,24 +218,29 @@ int main() {
     // Show the fps and the date and time on the display  console (terminal window)
     string show_motion_fps_date_msg_on_display_console = reader.Get("motion_detection", "show_motion_fps_date_msg_on_display_console", "No");
     // Output video parameters
-    string output_video_path = reader.Get("output_video", "output_video_path", "./");
+    
+    // VIDEO RECORDING
+    string output_video_path = reader.Get("video_recording", "output_video_path", "./");
     // Output prefix video file
-    string prefix_output_video = reader.Get("output_video", "prefix_output_video", "Vid_");
+    string prefix_output_video = reader.Get("video_recording", "prefix_output_video", "Vid_");
     // The Frames per second that your camera uses
-    int fps = reader.GetInteger("output_video", "fps", 15);
+    int fps = reader.GetInteger("video_recording", "fps", 15);
     // The codec to be used for writing the videos
-    string codecString = reader.Get("output_video", "codec", "XVID");
+    string codecString = reader.Get("video_recording", "codec", "XVID");
     // AI Object Detection Service URL
     string AIserverUrl = reader.Get("object_detection", "AIserverUrl", "http://localhost:80/v1/vision/detection");
     // Only when an AI object Detection service is installed Object Detection will happen
-    string AI_object_detection_service = reader.Get("object_detection", "AI_object_detection_service", "No");
+    string AIobject_detection_service = reader.Get("object_detection", "AIobject_detection_service", "No");
     // Thresholds for object detection: this is the minimum percentage (fraction) when an object signaled as recognised
-    string min_confidence = reader.Get("motion_detection", "min_confidence", "0.4");    
+    string min_confidence = reader.Get("motion_detection", "min_confidence", "0.4");  
+    
+    // OBJECT DETECTION
     // Try to find the defined objects and signal them when as recognised
     string string_of_objects_for_detection = reader.Get("object_detection", "string_of_objects_for_detection", "person");    
     // Split the comma-separated string string_of_objects_for_detection into individual values
     vector<string> objects_for_detection = splitString(string_of_objects_for_detection, ',');
-
+    // Try to find the defined objects and signal them when as recognised
+    string draw_object_rectangles = reader.Get("object_detection", "draw_object_rectangles", "person");    
     // Object detection will repeat after x seconds (default 5) when motion has been detected
     int object_detection_time = reader.GetInteger("object_detection", "object_detection_time", 3);
    // Output picture parameters
@@ -271,7 +283,7 @@ int main() {
     cout << "Camera started @ " << time_now_buf << endl;
     cout << "Videos are saved @ " << output_video_path << endl;
     cout << "Pictures are saved @ " << output_obj_picture_path << endl;
-    if (AI_object_detection_service == "Yes") {
+    if (AIobject_detection_service == "Yes") {
       cout << "Try to detect following objects : " << string_of_objects_for_detection << endl;
     }
 
@@ -348,7 +360,7 @@ int main() {
 
         bool motion_detected = false;
         // Check for motion after a warm up time to avoid initial writing of a file
-        if (frameCounter > check_motion_time * fps) {
+        if (frameCounter > warmup_time * fps) {
           vector<Rect>boundRect (contours.size());
           vector<vector<Point> > contours_poly( contours.size() );
           for (int i = 0; i < contours.size();i++) {
@@ -381,8 +393,8 @@ int main() {
           if (frameCounter > 100 and frameCounter < 300  or frameCounter > 400 and frameCounter < 600) {motion_detected = true;} else {motion_detected = false;}
         }
         
-      //  if (recording_on and AI_object_detection_service == "Yes") {
-        if (recording_on == true and AI_object_detection_service == "Yes") {
+      //  if (recording_on and AIobject_detection_service == "Yes") {
+        if (recording_on == true and AIobject_detection_service == "Yes") {
           // Initialize variables for a new object detection, object_detection_time is defined in config
             int modulo_result = frameCounter % obj_detection_each_x_frames;
             if (modulo_result == 0) {       
@@ -399,18 +411,20 @@ int main() {
                     }
                   } // END for (const string& value : objects_for_detection)  
                   if (found) {
-                    // Draw rectangles and labels for each detected object
-                    // Draw a rectangle around the detected object
-                    rectangle(frame_original, result.boundingBox, Scalar(0, 255, 0), 2);
-                    // Put the label at the top left corner of the rectangle
-                    putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
+                    // Draw rectangles and labels for each detected object if required
+                    if (draw_object_rectangles == "yes") {
+                      // Draw a rectangle around the detected object
+                      rectangle(frame_original, result.boundingBox, Scalar(0, 255, 0), 2);
+                      // Put the label at the top left corner of the rectangle
+                      putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
+                    }
                     imwrite(output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg", frame_original);  
                     cout << "Saved: " << output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg" << endl;
                     } // END if (found) 
               }  // END for (const auto& result : detectionResults)                  
 
             } // END if (modulo_result == 0)
-        } // END  if (recording_on == false and AI_object_detection_service == "Yes") 
+        } // END  if (recording_on == false and AIobject_detection_service == "Yes") 
               
                       
         // If motion detected, start recording and set the record duration
