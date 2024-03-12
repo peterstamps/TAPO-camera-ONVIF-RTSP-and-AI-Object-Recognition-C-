@@ -109,7 +109,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
         curl_mime_data(part, min_confidence.c_str(), CURL_ZERO_TERMINATED);
 
         part = curl_mime_addpart(mime);
-        curl_mime_name(part, "typedfile");
+       // curl_mime_name(part, "typedfile");  // works for Code Project AI, not Deepstack
+        curl_mime_name(part, "image");   // works for Code Project AI and Deepstack
         curl_mime_data(part, image_stream.str().c_str(), buffer.size());
         curl_mime_filename(part, output_obj_detection_filename.c_str());
         curl_mime_type(part, "image/jpeg");
@@ -138,8 +139,9 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
                 //  const string aiPredictions(jsonData["predictions"].asString());
               }  // END  if (show_AIResponse_message == "Yes")
               if (show_AIObjDetectionResult == "Yes") {
-                  const string aiMessage(jsonData["message"].asString());
-                  cout << "AI Message: " << aiMessage << endl;
+                  const string aiMessage(jsonData["message"].asString());                  
+                  const string aiSuccess(jsonData["success"].asString());                  
+                  cout << "AI Message: Success is " << aiSuccess << " " << aiMessage << endl; 
                   cout << endl;
                  // Extract object detection results
                   for (const auto& prediction : jsonData["predictions"]) {
@@ -210,6 +212,8 @@ int main() {
     string show_motion_fps_date_msg_on_display_console = reader.Get("motion_detection", "show_motion_fps_date_msg_on_display_console", "No");
     // Output video parameters
     string output_video_path = reader.Get("output_video", "output_video_path", "./");
+    // Output prefix video file
+    string prefix_output_video = reader.Get("output_video", "prefix_output_video", "Vid_");
     // The Frames per second that your camera uses
     int fps = reader.GetInteger("output_video", "fps", 15);
     // The codec to be used for writing the videos
@@ -229,6 +233,8 @@ int main() {
     int object_detection_time = reader.GetInteger("object_detection", "object_detection_time", 3);
    // Output picture parameters
     string output_obj_picture_path = reader.Get("object_detection", "output_obj_picture_path", "./");
+   // Output prefix picture file
+    string prefix_output_picture = reader.Get("object_detection", "prefix_output_picture", "Pic_");
     // Show the full json response message from the AI Object Detection Service
     string show_AIResponse_message = reader.Get("object_detection", "show_AIResponse_message", "No");
     // Show the result(s) from the response message from the AI Object Detection Service
@@ -398,8 +404,8 @@ int main() {
                     rectangle(frame_original, result.boundingBox, Scalar(0, 255, 0), 2);
                     // Put the label at the top left corner of the rectangle
                     putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
-                    imwrite(output_obj_picture_path + "Pic_" + time_now_buf + "_" + result.label + ".jpg", frame_original);  
-                    cout << "Saved: " << output_obj_picture_path + "Pic_" + time_now_buf + "_" + result.label + ".jpg" << endl;
+                    imwrite(output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg", frame_original);  
+                    cout << "Saved: " << output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg" << endl;
                     } // END if (found) 
               }  // END for (const auto& result : detectionResults)                  
 
@@ -415,8 +421,8 @@ int main() {
               cout << "Recording started @ " + string(time_now_buf) << endl;
               // set the codec and create VideoWriter object
               outputVideo.release();       
-              outputVideo.open(output_video_path + "Vid_" + time_now_buf + ".avi",  VideoWriter::fourcc(codecString[0], codecString[1], codecString[2], codecString[3]), fps, frameSize, true);
-              cout << "Saved: " << output_video_path + "Vid_" + time_now_buf + ".avi" << endl;
+              outputVideo.open(output_video_path + prefix_output_video + time_now_buf + ".avi",  VideoWriter::fourcc(codecString[0], codecString[1], codecString[2], codecString[3]), fps, frameSize, true);
+              cout << "Saved: " << output_video_path + prefix_output_video + time_now_buf + ".avi" << endl;
 
           }
 
