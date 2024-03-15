@@ -139,6 +139,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
             Json::Reader jsonReader;
             if (jsonReader.parse(response_data, jsonData)) {
               if (show_AIResponse_message == "Yes") {
+                  time(&now);
+                  strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));              
                   cout << time_now_buf << " Successfully parsed JSON data" << endl;
                   cout << time_now_buf << " JSON data received:" << endl;
                   cout << time_now_buf << jsonData.toStyledString() << endl;
@@ -154,6 +156,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
                       result.confidence = prediction["confidence"].asString();
                       float conf;
                       conf = prediction["confidence"].asFloat() * 100.0;
+                      time(&now);
+                      strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));                      
                       cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << ". Found: " << result.label << ". Confidence: " << setprecision(3) << conf << "%" << endl; 
                       // Drawing a rectangle in OpenCV with C++ behaves differently than in Python
                       // In C++ you need Rect((x,y), (x+width_offset, y+height_offset)
@@ -165,6 +169,8 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
             }
             else 
             {
+                time(&now);
+                strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
                 cout  << time_now_buf << " Could not parse HTTP data as JSON" << endl;
                 cout  << time_now_buf << " HTTP data was:\n" << response_data << endl;
             } // END of if (jsonReader.parse(response_data, jsonData))
@@ -343,6 +349,8 @@ int main() {
 
         if (show_motion_fps_date_msg_on_display_window == "Yes") {
           // put frame number and time on screen
+          time(&now);
+          strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
           putText(frame_original, '@'+str_frameCounter + " " + time_now_buf, Point(10,frame_height - 20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,255,88),2);
         }
 
@@ -352,6 +360,8 @@ int main() {
           // clear from cursor to the end of the line. 
           // If n is 1, clear from cursor to beginning of the line. 
           // If n is 2, clear entire line. Cursor position does not change. 
+          time(&now);
+         strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
           cout << '@'+str_frameCounter + " " + time_now_buf + "\033[K\r"; 
         }
 
@@ -426,6 +436,8 @@ int main() {
                       putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
                       }
                     }
+                    time(&now);
+                    strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
                     imwrite(output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg", frame_original);  
                     cout << "Saved: " << output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg" << endl;
                     } // END if (found) 
@@ -446,9 +458,10 @@ int main() {
               recording_on = true;
               start_time = time(0);
               end_time = start_time + record_duration;
+              time(&now);
+              strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));              
               cout << "Recording started @ " + string(time_now_buf) << endl;
               // set the codec and create VideoWriter object
-              outputVideo.release();  
               outputVideo.open(output_video_path + prefix_output_video + time_now_buf + extension_of_video,  VideoWriter::fourcc(codecString[0], codecString[1], codecString[2], codecString[3]), fps, frameSize, true);
               cout << "Saved: " << output_video_path + prefix_output_video + time_now_buf + extension_of_video << endl;
           }
@@ -458,6 +471,8 @@ int main() {
         if (recording_on) {
           // Check if it's time to stop recording
           if (time(0) >= end_time) {
+              time(&now);
+              strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));          
               cout << "Recording stopped @ " + string(time_now_buf) << endl;
               start_time = 0;
               end_time = 0;
