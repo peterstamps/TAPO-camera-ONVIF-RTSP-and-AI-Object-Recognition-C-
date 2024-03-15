@@ -481,8 +481,8 @@ int main() {
               time(&now);
               strftime(time_now_buf, 21, "%Y_%m_%d_%H_%M_%S", gmtime(&now));          
               cout << "Recording stopped @ " + string(time_now_buf) << endl;
-              start_time = 0;
-              end_time = 0;
+              start_time = time(0);
+              end_time = time(0);
               recording_on = false;
               // Release the VideoWriter object
               if (!outputVideo.isOpened()) {
