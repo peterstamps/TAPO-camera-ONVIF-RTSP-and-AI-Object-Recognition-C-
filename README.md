@@ -2,7 +2,7 @@
 TAPO-camera-ONVIF-RTSP-and-AI-Object-Recognition in C++
 
 
-You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm). The compile Ubuntu version has been added as well and is called mycMotDetRecUbuntu (it was compiled on 64 bit Ubuntu 23.10)
+You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm). The compiled Ubuntu version has been added as well and is called mycMotDetRecUbuntu (it was compiled on 64 bit Ubuntu 23.10)
 1. Download mycMotDetRec and mycMotDetRec_config.ini and test_mask.png
    mycMotDetRec means: myc = my camera, Mot = Motion, Det = Detection, Rec = Recording.
 2. Open a terminal in the directory where you saved these files.
