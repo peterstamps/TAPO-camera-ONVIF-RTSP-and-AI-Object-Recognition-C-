@@ -43,7 +43,9 @@ Put the mak file "test_mask.png" (or your own mask file with any other name like
 INSTALL the necessary compilation libraries for g++ and others
 sudo apt update
 sudo apt upgrade
+
 sudo apt-get install build-essential cmake pkg-config libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 python3-pyqt5 python3-dev -y
+sudo apt-get install libopencv-dev python3-opencv
 sudo apt-get install libcurl4-gnutls-dev
 sudo apt-get install libjsoncpp-dev
 sudo ln -s /usr/include/jsoncpp/json/ /usr/include/json
@@ -51,6 +53,6 @@ sudo apt-get install libcurl4-openssl-dev
  
 Compile now mycMotDetRec.cpp with the following command, assumeing you have configured all necessary libs and installed all dependencies.
  
-g++  mycMotDetRec.cpp -o mycMotDetRec   -I/usr/include/opencv4 -I/usr/include -lopencv_videoio -lopencv_video -lopencv_videostab -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -ljsoncpp  -lcurl
+g++  mycMotDetRec.cpp -o mycMotDetRecUbuntu   -I/usr/include/opencv4 -I/usr/include -lopencv_videoio -lopencv_video -lopencv_videostab -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -ljsoncpp  -lcurl
  
 
