@@ -26,7 +26,6 @@
 #include <curl/curl.h>
 #include <json/json.h>
 
-
 using namespace cv;
 using namespace std;
 VideoWriter outputVideo;
@@ -46,6 +45,7 @@ VideoWriter outputVideo;
 // Structure to hold object detection result
 struct DetectionResult {
     std::string label;
+    std::string confidence;
     cv::Rect boundingBox;
 };
 
@@ -151,10 +151,14 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
                   for (const auto& prediction : jsonData["predictions"]) {
                       DetectionResult result;
                       result.label = prediction["label"].asString();
-                      cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << ". Found: " << result.label << aiMessage << endl; 
-                      
+                      result.confidence = prediction["confidence"].asString();
+                      float conf;
+                      conf = prediction["confidence"].asFloat() * 100.0;
+                      cout << time_now_buf << " AI Object Detection service message: Success is " << aiSuccess << ". Found: " << result.label << ". Confidence: " << setprecision(3) << conf << "%" << endl; 
+                      // Drawing a rectangle in OpenCV with C++ behaves differently than in Python
+                      // In C++ you need Rect((x,y), (x+width_offset, y+height_offset)
                       result.boundingBox = Rect(prediction["x_min"].asInt(), prediction["y_min"].asInt(),
-                                           prediction["x_max"].asInt(), prediction["y_max"].asInt());
+                                           prediction["x_max"].asInt() - prediction["x_min"].asInt() , prediction["y_max"].asInt() - prediction["y_min"].asInt());
                       detectionResults.push_back(result);
                       }
               } // END  if (show_AIObjDetectionResult == "Yes")
@@ -411,11 +415,16 @@ int main() {
                   } // END for (const string& value : objects_for_detection)  
                   if (found) {
                     // Draw rectangles and labels for each detected object if required
-                    if (draw_object_rectangles == "yes") {
+                    if (draw_object_rectangles == "Yes") {
                       // Draw a rectangle around the detected object
                       rectangle(frame_original, result.boundingBox, Scalar(0, 255, 0), 2);
                       // Put the label at the top left corner of the rectangle
+                      if(result.boundingBox.y - 10 < 10) {
+                        putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y + 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2); 
+                        }
+                        else {
                       putText(frame_original, result.label, Point(result.boundingBox.x, result.boundingBox.y - 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
+                      }
                     }
                     imwrite(output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg", frame_original);  
                     cout << "Saved: " << output_obj_picture_path + prefix_output_picture + time_now_buf + "_" + result.label + ".jpg" << endl;
@@ -499,4 +508,4 @@ int main() {
     destroyAllWindows();
 
     return 0;
-}
+} 
