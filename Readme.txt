@@ -2,13 +2,14 @@
 TAPO-camera-ONVIF-RTSP-and-AI-Object-Recognition in C++
 
 
-You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm).
+You can run the compiled program on raspberry Pi 64 bit (e.g. bookworm). The compile Ubuntu version has been added as well and is called mycMotDetRecUbuntu (it was compiled on 64 bit Ubuntu 23.10)
 1. Download mycMotDetRec and mycMotDetRec_config.ini and test_mask.png
    mycMotDetRec means: myc = my camera, Mot = Motion, Det = Detection, Rec = Recording.
 2. Open a terminal in the directory where you saved these files.
 3. DO NOT FORGET THIS: Edit / Adapt first the settings in mycMotDetRec_config.ini to your needs!
 4. Run ./mycMotDetRec
-5. You may see a few times this repeated message. Just ignore it: libpng warning: iCCP: known incorrect sRGB profile
+5. You may see a few times this repeated message. Just ignore it: libpng warning: iCCP: known incorrect sRGB profile. 
+   On Ubuntu you might see this message which can also be ignored: QSocketNotifier: Can only be used with threads started with QThread
 6. Use key q to close the program or CTRL-C in the console/terminal
 
 You get the best results on a Tapo camera using stream2 (1280 x 720 pixels) on a Raspberry pi 4 (4GB ram) 64 bit Bookworm.
@@ -43,7 +44,6 @@ Put the mak file "test_mask.png" (or your own mask file with any other name like
 INSTALL the necessary compilation libraries for g++ and others
 sudo apt update
 sudo apt upgrade
-
 sudo apt-get install build-essential cmake pkg-config libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 python3-pyqt5 python3-dev -y
 sudo apt-get install libopencv-dev python3-opencv
 sudo apt-get install libcurl4-gnutls-dev
@@ -53,6 +53,6 @@ sudo apt-get install libcurl4-openssl-dev
  
 Compile now mycMotDetRec.cpp with the following command, assumeing you have configured all necessary libs and installed all dependencies.
  
-g++  mycMotDetRec.cpp -o mycMotDetRecUbuntu   -I/usr/include/opencv4 -I/usr/include -lopencv_videoio -lopencv_video -lopencv_videostab -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -ljsoncpp  -lcurl
+g++  mycMotDetRec.cpp -o mycMotDetRec   -I/usr/include/opencv4 -I/usr/include -lopencv_videoio -lopencv_video -lopencv_videostab -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -ljsoncpp  -lcurl
  
 
