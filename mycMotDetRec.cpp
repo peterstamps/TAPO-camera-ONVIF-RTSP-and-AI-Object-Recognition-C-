@@ -229,6 +229,8 @@ int main() {
     // Show the fps and the date and time on the display  console (terminal window)
     string show_motion_fps_date_msg_on_display_console = reader.Get("motion_detection", "show_motion_fps_date_msg_on_display_console", "No");
     // Output video parameters
+    string show_contour_area_value = reader.Get("motion_detection", "show_contour_area_value", "No");
+    // Output video parameters
     
     // VIDEO RECORDING
     string output_video_path = reader.Get("video_recording", "output_video_path", "./");
@@ -381,12 +383,17 @@ int main() {
                   continue;
               }
               motion_detected = true;
+            if (show_contour_area_value == "Yes") {          
+              //  Show the value of the contour area. This can helpt to adjust the value (higher or lower)
+              cout << "The value of the detected motion contour Area is: " << setprecision(4) << contourArea(contours[i]) << endl;
+            }
+              
             if (show_motion_detected_msg_on_display_window == "Yes") {          
               //    cout << "Motion detected" << endl;
               // put frame number and time on screen
               putText(frame_original, "motion detected", Point(10, frame_height - 40), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,255,88),2);
             }
-            if (show_motion_detected_msg_on_display_console== "Yes") {          
+            if (show_motion_detected_msg_on_display_console == "Yes") {          
               //    cout << "Motion detected" << endl;
               // put frame number and time on screen
               cout << "motion detected                        \033[K\r";
