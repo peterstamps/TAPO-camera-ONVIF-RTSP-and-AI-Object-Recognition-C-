@@ -197,19 +197,13 @@ int main() {
     // Thresholds for motion detection contour area: this is the minimum numer of the changed pixels between frames
     
     // MOTION DETECTION
-    int min_contour_area = reader.GetInteger("motion_detection", "min_contour_area", 500);
+    int min_contour_area = reader.GetInteger("motion_detection", "min_contour_area", 400);
     // Background subtraction method (choose between "KNN" or "MOG2")
     string background_subtractor_method = reader.Get("motion_detection", "background_subtraction_method", "KNN");
     // Path to the mask file
     string mask_path = reader.Get("motion_detection", "mask_path", "");
-    // Record duration in seconds
-    int record_duration = reader.GetInteger("motion_detection", "record_duration", 10);
     // Warm up time. The time to be passed after start of program. Hereafter motion dectection will start.
     int warmup_time = reader.GetInteger("motion_detection", "warmup_time", 3);
-    // Extra time to add to the record duration if new motion is detected
-    int extra_record_time = reader.GetInteger("motion_detection", "extra_record_time", 5);
-    // Pre-motion recording duration in second. The time before recording should stop wiil be used to detect uf new motion happened.
-    int before_record_duration_is_passed = reader.GetInteger("motion_detection", "before_record_duration_is_passed", 3);
     // When No motion rectangles will be drawn on the screen around the moving objects
     string draw_motion_rectangles = reader.Get("motion_detection", "draw_motion_rectangles", "No");
     // Simulate a motion Default No. (used for test purposes)
@@ -230,7 +224,6 @@ int main() {
     string show_motion_fps_date_msg_on_display_console = reader.Get("motion_detection", "show_motion_fps_date_msg_on_display_console", "No");
     // Output video parameters
     string show_contour_area_value = reader.Get("motion_detection", "show_contour_area_value", "No");
-    // Output video parameters
     
     // VIDEO RECORDING
     string output_video_path = reader.Get("video_recording", "output_video_path", "./");
@@ -242,14 +235,24 @@ int main() {
     int fps = reader.GetInteger("video_recording", "fps", 15);
     // The codec to be used for writing the videos
     string codecString = reader.Get("video_recording", "codec", "XVID");
+    float maximum_recording_time = reader.GetFloat("video_recording", "maximum_recording_time", 2.5);
+
+    // Record duration in seconds
+    int record_duration = reader.GetInteger("video_recording", "record_duration", 10);
+    // Extra time to add to the record duration if new motion is detected
+    int extra_record_time = reader.GetInteger("video_recording", "extra_record_time", 5);
+    // Pre-motion recording duration in second. The time before recording should stop wiil be used to detect uf new motion happened.
+    int before_record_duration_is_passed = reader.GetInteger("video_recording", "before_record_duration_is_passed", 3);
+    // Output video parameters
+    string show_timing_for_recording = reader.Get("video_recording", "show_timing_for_recording", "No");
+    
+    // OBJECT DETECTION    
     // AI Object Detection Service URL
     string AIserverUrl = reader.Get("object_detection", "AIserverUrl", "http://localhost:80/v1/vision/detection");
     // Only when an AI object Detection service is installed Object Detection will happen
     string AIobject_detection_service = reader.Get("object_detection", "AIobject_detection_service", "No");
     // Thresholds for object detection: this is the minimum percentage (fraction) when an object signaled as recognised
     string min_confidence = reader.Get("motion_detection", "min_confidence", "0.4");  
-    
-    // OBJECT DETECTION
     // Try to find the defined objects and signal them when as recognised
     string string_of_objects_for_detection = reader.Get("object_detection", "string_of_objects_for_detection", "person");    
     // Split the comma-separated string string_of_objects_for_detection into individual values
@@ -284,6 +287,7 @@ int main() {
         cout << "Error: Cannot open the camera." << endl;
         return -1;
     }
+   // cap.set(cv::CAP_PROP_BUFFERSIZE, 1);  // do NOT buffer frames
     int frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
     int frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
     
@@ -456,9 +460,12 @@ int main() {
           // If recording is on, then check if extra record time must be added and check if record duration is passed 
         if (recording_on) {
           if (motion_detected and time(0) >= end_time - before_record_duration_is_passed) {
-                end_time += extra_record_time;
-              }
-         }            
+            end_time += extra_record_time;
+          }
+          if (time(0) - start_time > 60 * maximum_recording_time) {
+            end_time = time(0);
+          }
+        }            
                       
         // If motion detected, start recording and set the record duration
         if (motion_detected and not recording_on) {
@@ -497,6 +504,10 @@ int main() {
                   cerr << "Could not open the output video file for write\n";
                   return -1;
               }  
+              if (show_timing_for_recording == "Yes") {
+              cout << " motion_detected: " << motion_detected << " time(0): " << time(0) << " end_time: " << end_time << " start_time: " << start_time << " record_duration: " << record_duration << " extra_record_time: " << extra_record_time << " Calc. record duration: " << time(0) -  start_time << endl;
+              }
+                        
               outputVideo.write(frame_original);
           }
         }
