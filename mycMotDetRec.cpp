@@ -287,7 +287,7 @@ int main() {
         cout << "Error: Cannot open the camera." << endl;
         return -1;
     }
-   // cap.set(cv::CAP_PROP_BUFFERSIZE, 1);  // do NOT buffer frames
+    cap.set(cv::CAP_PROP_BUFFERSIZE, fps);  // do buffer frames
     int frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
     int frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
     
