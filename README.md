@@ -56,7 +56,7 @@ g++  mycMotDetRec.cpp -o mycMotDetRec   -I/usr/include/opencv4 -I/usr/include -l
  
 
 FEATURES
-########
+========
 Note that i have added some variants in one of my repositories.
 
 The latest apps are doing the following once configured via a simple  .ini file and started in a terminal(console) on raspberry pi (or other linux e.g. Ubuntu)
