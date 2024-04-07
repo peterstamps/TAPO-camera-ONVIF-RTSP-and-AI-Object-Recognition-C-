@@ -83,9 +83,10 @@ vector<DetectionResult> postImageAndGetResponse(string& AIserverUrl, string& min
         // Convert the frame to JPEG format
         vector<uchar> buffer;
         //buffer for coding 
-        vector<int> param(2);
-        param[0] = cv::IMWRITE_JPEG_QUALITY; param[1] = 100; //default(95) 0-100 
-        cv::imencode(".jpg", frame, buffer, param);         
+        //vector<int> param(2);
+        //param[0] = cv::IMWRITE_JPEG_QUALITY; param[1] = 100; //default(95) 0-100 
+        // cv::imencode(".jpg", frame, buffer, param);         
+        cv::imencode(".jpg", frame, buffer);         
         // Save the frame into a file
         // imwrite("./temp_frame.jpg", frame); //
         // Mat frame = imread("./temp_frame.jpg"); // Load your image here.
